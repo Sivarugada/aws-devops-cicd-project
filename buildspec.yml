@@ -1,0 +1,22 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to ECR
+      - aws --version
+      - $(aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin <ECR_URI>)
+
+  build:
+    commands:
+      - docker build -t my-app .
+      - docker tag my-app:latest <ECR_URI>:latest
+
+  post_build:
+    commands:
+      - docker push <ECR_URI>:latest
+      - printf '[{"name":"my-container","imageUri":"<ECR_URI>:latest"}]' > imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json
